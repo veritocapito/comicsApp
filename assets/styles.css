@@ -1,0 +1,23 @@
+@import url('https://fonts.cdnfonts.com/css/monster-chiller');
+
+header{
+    height: 60vh;
+    background: url('./hero.jpg'), rgb(236,29,37);
+    background-position: bottom;
+    background-repeat: no-repeat;
+    background-size: contain;
+}
+
+h1{
+    text-align: center;
+    color: rgb(236,29,37);
+    outline-color: aliceblue;
+    font-family: 'Monster Chiller', sans-serif;
+    font-size: 6rem;
+    padding: 1rem 0;
+}
+
+main{
+    padding: 20px 0;
+    background-color: rgb(40, 39, 39);
+}
