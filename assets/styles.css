@@ -8,7 +8,7 @@
 }
 
 header{
-    height: 60vh;
+    height: 50vh;
     background: url('./hero.jpg'), rgb(236,29,37);
     background-position: bottom;
     background-repeat: no-repeat;
@@ -17,16 +17,20 @@ header{
 
 h1{
     text-align: center;
-    color: rgb(236,29,37);
-    outline-color: aliceblue;
+    color: rgb(247, 233, 234);
+    margin: 0;
     font-family: 'Monster Chiller', sans-serif;
-    font-size: 8rem;
-    padding: 2rem 0;
+    letter-spacing: 4px;
+    font-size: 4rem;
+    padding: 0.5rem 0;
 }
 
 main{
     padding: 20px 0;
-    background-color: rgb(40, 39, 39);
+}
+
+form{
+    align-self: center;
 }
 
 .comic-card {
