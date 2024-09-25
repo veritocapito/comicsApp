@@ -17,20 +17,20 @@
   <body>
     <h1 class="bg-black">Comics App</h1>
     <header></header>
-    <form class="container row align-items-center mx-5 m-5 px-5 justify-content-between">
-        <!-- Input de búsqueda -->
-        <div class="col-6 d-flex align-items-center">
+    <div class="d-flex flex-column align-items-center">
+      <form
+        class="container row align-items-center mt-5 mb-4 justify-content-between"
+      >
+        <div class="col-6 d-flex align-items-center m-0 p-0">
           <input
             type="search"
             id="search-input"
             class="form-control"
-            placeholder="Search"
+            placeholder="SEARCH HERE"
             aria-labelledby="search-title"
           />
-          <i class="bi bi-search ml-2" aria-hidden="true"></i>
         </div>
-        
-        <!-- Selectores -->
+
         <div class="col-2 d-flex align-items-center gap-2">
           <label for="search-type" class="form-label m-0">TYPE</label>
           <select name="search-type" id="search-type" class="form-select">
@@ -38,6 +38,7 @@
             <option value="characters">CHARACTERS</option>
           </select>
         </div>
+
         <div class="col-2 d-flex align-items-center gap-2">
           <label for="search-sort" class="form-label m-0">SORT</label>
           <select name="search-sort" id="search-sort" class="form-select">
@@ -47,18 +48,24 @@
             <option value="focDate">OLDEST</option>
           </select>
         </div>
-      
-        <!-- Botón de búsqueda -->
+
         <div class="col-1">
           <button type="submit" class="btn btn-primary">SEARCH</button>
         </div>
       </form>
-      
+    </div>
+    <div class="container" id="results">
+      <h5 class="results-title">RESULTS</h5>
+      <p class="results-counter">180 RESULTS</p>
+    </div>
 
-    <main id="main">
+    <main
+      class="d-flex flex-column align-items-center justify-content-center"
+      id="main"
+    >
       <div
         id="container"
-        class="container mb-5 mt-5 d-flex gap-2 flex-wrap justify-content-between"
+        class="container mb-5 d-flex gap-4 flex-wrap sm-justify-content-center"
       ></div>
       <div class="d-flex justify-content-center align-items-center gap-2 mb-4">
         <a href="#main" class="btn btn-primary text-white" id="first-page"

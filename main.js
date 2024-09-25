@@ -2,14 +2,15 @@ const container = document.getElementById('container')
 let contentHtml = ''
 
 let counter = 1
-let offset = 0
-let total = 120
+let offset = 20
+let total = 160
+let limit = 16
 
 //Fetching
 function getComics() {
-    offset = (parseInt(12) * parseInt(counter)) - parseInt(12);
+    offset = (parseInt(limit) * parseInt(counter)) - parseInt(limit);
     console.log(offset);
-    fetch(`https://gateway.marvel.com:443/v1/public/comics?limit=12&offset=${offset}&ts=1&apikey=d0bac062c296448e513e8a3147810f19&hash=5e6eef74abfa220a102df0024190f6e7`)
+    fetch(`https://gateway.marvel.com:443/v1/public/comics?limit=${limit}&offset=${offset}&ts=1&apikey=d0bac062c296448e513e8a3147810f19&hash=5e6eef74abfa220a102df0024190f6e7`)
         .then(res => res.json())
         .then(info => setComics(info.data.results))
         .catch(err => console.log(err))
@@ -41,14 +42,13 @@ function setComics(comics) {
         }
 
         contentHtml += `
-        <div class="card col-md-4 mt-2 mb-2 comic-card">
+        <div class="card col-md-4 mt-3 mb-3 comic-card">
             <div class="img-container">
-                <img src="${comicImg}" class="card-img-top" alt="${comicTitle}">
+                <img src="${comicImg}" class="card-img img-fluid" alt="${comicTitle}">
             </div>
             <div class="card-body">
-                <h5 class="card-title">${comicTitle}</h5>
+                <h5 class="card-title"><a href="${comicUrl}" target="_blank">${comicTitle}</a></h5>
                 <p class="card-text">Creator: ${authorName}</p>
-                <a href="${comicUrl}" target="_blank" class="btn btn-danger w-40 align-self-center">More info</a>
             </div>
         </div>`;
 
