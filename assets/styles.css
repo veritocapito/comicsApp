@@ -81,6 +81,12 @@ form{
     font-size: 1.2rem;
 }
 
+#character:hover{
+    cursor: pointer;
+    transform: scale(1.1);
+    transition: transform 0.5s ease-in-out;
+}
+
 a {
    text-decoration: none; 
 }
