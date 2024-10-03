@@ -4,14 +4,11 @@ let contentHtml = ''
 let counter = 1
 let query = 'characters'
 
-const ak = 'd0bac062c296448e513e8a3147810f19'
-const hs = '5e6eef74abfa220a102df0024190f6e7'
-
 
 const url = new URL(`https://gateway.marvel.com:443/v1/public/${query}`)
-url.searchParams.set('ts', '1')
-url.searchParams.set('apikey', ak)
-url.searchParams.set('hash', hs)
+url.searchParams.set('ts', TS)
+url.searchParams.set('apikey', API_KEY)
+url.searchParams.set('hash', API_HASH)
 
 //Fetching
 function getData() {
@@ -98,7 +95,7 @@ function setCharacters(characters) {
 function setCharacterComics(characterId, characterName, characterImg) {
     contentHtml = ``;
 
-    fetch(`https://gateway.marvel.com:443/v1/public/characters/${characterId}/comics?ts=1&apikey=${ak}&hash=${hs}`)
+    fetch(`https://gateway.marvel.com:443/v1/public/characters/${characterId}/comics?ts=${TS}&apikey=${API_KEY}&hash=${API_HASH}`)
         .then(res => res.json())
         .then(info => {
             const comics = info.data.results;
