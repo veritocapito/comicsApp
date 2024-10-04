@@ -8,7 +8,7 @@
 }
 
 header{
-    height: 50vh;
+    height: 60vh;
     background: url('./hero.jpg'), rgb(236,29,37);
     background-position: bottom;
     background-repeat: no-repeat;
@@ -41,7 +41,7 @@ form{
 
 .comic-card {
     border: none;
-    width: 300px;
+    width: 240px;
     display: flex;
     flex-direction: column;
     justify-content: space-between;
@@ -55,17 +55,17 @@ form{
 }
 
 .card2{
-    width: 240px;
+    width: 180px;
 }
 
 .character{
-    width: 240px;
-    height: 280px;
+    width: 180px;
+    height: 210px;
 }
 
 .img-container {
-    height: 350px;
-    width: 300px;
+    height: 280px;
+    width: 240px;
 }
 
 .img-container img, .character img {
@@ -87,7 +87,7 @@ form{
 }
 
 .card-title{
-    font-size: 1.2rem;
+    font-size: 1rem;
 }
 
 #character:hover{
