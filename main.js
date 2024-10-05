@@ -3,14 +3,7 @@ let contentHtml = '';
 const results = document.getElementById('results');
 let resultsHtml = '';
 
-let query = 'comics'; // Default search is for comics
-let counter = 1;
-
 const urlBase = 'https://gateway.marvel.com:443/v1/public/';
-const url = new URL(`${urlBase}${query}`);
-url.searchParams.set('ts', TS);
-url.searchParams.set('apikey', API_KEY);
-url.searchParams.set('hash', API_HASH);
 
 // Function to fetch data (comics or characters)
 function getData(searchValue = '', sortValue = '', type = 'comics') {
@@ -19,7 +12,6 @@ function getData(searchValue = '', sortValue = '', type = 'comics') {
     // Handle sorting
     if (sortValue) {
         if (type === 'comics') {
-            // Comics: allow sorting by title or release date (newest/oldest)
             if (sortValue === 'title-asc') {
                 baseURL += 'orderBy=title&';
             } else if (sortValue === 'title-desc') {
@@ -30,7 +22,6 @@ function getData(searchValue = '', sortValue = '', type = 'comics') {
                 baseURL += 'orderBy=-focDate&';
             }
         } else if (type === 'characters') {
-            // Characters: allow sorting only by name
             if (sortValue === 'name-asc') {
                 baseURL += 'orderBy=name&';
             } else if (sortValue === 'name-desc') {
@@ -39,33 +30,32 @@ function getData(searchValue = '', sortValue = '', type = 'comics') {
         }
     }
 
-    // Set search parameters based on input, but only if searchValue is not empty
+    // Add search value filtering, if applicable
     if (searchValue) {
         if (type === 'comics') {
-            baseURL += `titleStartsWith=${encodeURIComponent(searchValue)}&`;
+            baseURL += `titleStartsWith=${searchValue}&`;
         } else if (type === 'characters') {
-            baseURL += `nameStartsWith=${encodeURIComponent(searchValue)}&`;
+            baseURL += `nameStartsWith=${searchValue}&`;
         }
     }
 
-    // Add the required API parameters at the end
     baseURL += `ts=${TS}&apikey=${API_KEY}&hash=${API_HASH}`;
+    console.log(baseURL);
 
-    // Fetch the data and display the results
+    // Fetch and display results
     fetch(baseURL)
         .then(res => res.json())
         .then(info => {
             const totalResults = info.data.total;
             console.log('Total results: ', totalResults);
 
-            // Display the total number of results
             resultsHtml = `
                 <h5 class="results-title">RESULTS</h5>
                 <p class="results-counter">${totalResults} TOTAL RESULTS</p>
             `;
             results.innerHTML = resultsHtml;
 
-            // Call the appropriate function to render results
+            // Render results based on type
             if (type === 'comics') {
                 setComics(info.data.results);
             } else {
@@ -75,37 +65,16 @@ function getData(searchValue = '', sortValue = '', type = 'comics') {
         .catch(err => console.log(err));
 }
 
-// Event listener for search form submission
-document.querySelector('form').addEventListener('submit', function(event) {
-    event.preventDefault();
-
-    // Get values from the input and selects
-    const searchInput = document.getElementById('search-input').value.trim();
-    const searchType = document.getElementById('search-type').value;
-    let searchSort = document.getElementById('search-sort').value; 
-
-    // If searching for characters, ensure sorting is only by name
-    if (searchType === 'characters') {
-        if (searchSort === 'date-asc' || searchSort === 'date-desc') {
-            searchSort = ''; // Disable date sorting for characters
-        }
-    }
-
-    // Call getData with the search parameters from the form
-    getData(searchInput, searchSort, searchType);
-});
-
-// Function to display comics
+// Function to display comics (with forEach)
 function setComics(comics) {
     contentHtml = '';
-
-    for (let i = 0; i < comics.length; i++) {
-        const comicTitle = comics[i].title;
-        const comicAuthors = comics[i].creators.items;
+    comics.forEach(comic => {
+        const comicTitle = comic.title;
+        const comicAuthors = comic.creators.items;
         const authorName = comicAuthors.length > 0 ? comicAuthors[0].name : 'Marvel';
 
-        const comicImg = `${comics[i].thumbnail.path}.${comics[i].thumbnail.extension}`;
-        const comicUrl = comics[i].urls.length > 0 ? comics[i].urls[0].url : '#';
+        const comicImg = `${comic.thumbnail.path}.${comic.thumbnail.extension}`;
+        const comicUrl = comic.urls.length > 0 ? comic.urls[0].url : '#';
 
         contentHtml += `
         <div class="card col-md-4 mt-3 mb-3 comic-card">
@@ -117,20 +86,19 @@ function setComics(comics) {
                 <p class="card-text">Creator: ${authorName}</p>
             </div>
         </div>`;
-    }
+    });
     container.innerHTML = contentHtml;
 }
 
-// Function to display characters
+// Function to display characters (with forEach)
 function setCharacters(characters) {
     contentHtml = '';
-
-    for (let i = 0; i < characters.length; i++) {
-        const characterId = characters[i].id;
-        const characterImg = `${characters[i].thumbnail.path}.${characters[i].thumbnail.extension}`;
-        const characterName = characters[i].name;
-        const characterInfo = characters[i].description || 'No description available';
-        const characterComics = characters[i].comics.available;
+    characters.forEach(character => {
+        const characterId = character.id;
+        const characterImg = `${character.thumbnail.path}.${character.thumbnail.extension}`;
+        const characterName = character.name;
+        const characterInfo = character.description || 'No description available';
+        const characterComics = character.comics.available;
 
         contentHtml += `
         <div class="card col-md-4 mt-3 mb-3 comic-card" data-id="${characterId}" data-name="${characterName}" data-img="${characterImg}" data-info="${characterInfo}">
@@ -142,10 +110,10 @@ function setCharacters(characters) {
                 <p class="card-text">Comics: ${characterComics}</p>
             </div>
         </div>`;
-    }
+    });
     container.innerHTML = contentHtml;
 
-    // Add event listener to each character card to fetch and display comics for that character
+    // Add event listener to each character card
     document.querySelectorAll('.comic-card').forEach(card => {
         card.addEventListener('click', function () {
             const characterId = this.getAttribute('data-id');
@@ -158,25 +126,21 @@ function setCharacters(characters) {
     });
 }
 
-// Event listener for search form submission
-document.querySelector('form').addEventListener('submit', function (event) {
-    event.preventDefault();
-
+// Function to filter and combine input and selects
+function filterData() {
     const searchInput = document.getElementById('search-input').value.trim();
     const searchType = document.getElementById('search-type').value;
     const searchSort = document.getElementById('search-sort').value;
 
-    // If searching for characters, ensure sorting is only by name
-    if (searchType === 'characters') {
-        if (searchSort === 'date-asc' || searchSort === 'date-desc') {
-            searchSort = ''; // Disable date sorting for characters
-        }
-    }
-
     getData(searchInput, searchSort, searchType);
+}
+
+// Event listener for search form submission
+document.querySelector('form').addEventListener('submit', function (event) {
+    event.preventDefault();
+    filterData(); 
 });
 
-// Call getData() initially to load comics by default
 getData();
 
 
