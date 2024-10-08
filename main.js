@@ -3,6 +3,7 @@ let contentHtml = '';
 const results = document.getElementById('results');
 let resultsHtml = '';
 
+
 const urlBase = 'https://gateway.marvel.com:443/v1/public/';
 
 // Function to fetch data (comics or characters)
@@ -65,7 +66,7 @@ function getData(searchValue = '', sortValue = '', type = 'comics') {
         .catch(err => console.log(err));
 }
 
-// Function to display comics (with forEach)
+// Function to display comics
 function setComics(comics) {
     contentHtml = '';
     comics.forEach(comic => {
@@ -76,8 +77,10 @@ function setComics(comics) {
         const comicImg = `${comic.thumbnail.path}.${comic.thumbnail.extension}`;
         const comicUrl = comic.urls.length > 0 ? comic.urls[0].url : '#';
 
+        const comicId = comic.id;
+
         contentHtml += `
-        <div class="card col-md-4 mt-3 mb-3 comic-card">
+        <div class="card col-md-4 mt-3 mb-3 comic-card" data-id="${comicId}">
             <div class="img-container">
                 <img src="${comicImg}" class="card-img img-fluid" alt="${comicTitle}">
             </div>
@@ -88,9 +91,114 @@ function setComics(comics) {
         </div>`;
     });
     container.innerHTML = contentHtml;
+
+    document.querySelectorAll('.comic-card').forEach(card => {
+        card.addEventListener('click', function () {
+            const comicId = this.getAttribute('data-id');
+            displayComicDetails(comicId);  // Function to fetch and show comic details
+        });
+    });
 }
 
-// Function to display characters (with forEach)
+// Function to fetch and display comic details
+function displayComicDetails(comicId) {
+
+    document.getElementById('main').classList.add('d-none')
+
+    fetch(`https://gateway.marvel.com:443/v1/public/comics/${comicId}?ts=${TS}&apikey=${API_KEY}&hash=${API_HASH}`)
+        .then(res => res.json())
+        .then(info => {
+            const comic = info.data.results[0];
+            console.log(comic);
+            console.log(comic.characters);
+
+
+            const comicTitle = comic.title;
+            const comicImg = `${comic.thumbnail.path}.${comic.thumbnail.extension}`;
+            const comicReleaseDate = comic.dates.find(date => date.type === 'onsaleDate').date;
+            const comicWriters = comic.creators.items
+                .filter(creator => creator.role.toLowerCase() === 'writer')
+                .map(writer => writer.name)
+                .join(', ');
+            const comicDescription = comic.description || 'No description available.';
+            const comicCharacters = comic.characters.items;
+
+            const comicDetailsHtml = `
+                <div class="col-12 d-flex flex-column gap-5 mt-3 mb-3">
+                    <div class="col-12 d-flex gap-5 mt-3 mb-3">
+                        <div class="img-character col-md-4 mt-3 mb-3">
+                            <img src="${comicImg}" class="card-img img-fluid" alt="${comicTitle}">
+                        </div>
+                        <div class="col-md-6 mt-3 mb-3">
+                            <h2>${comicTitle}</h2>
+                            <p class="card-text mt-3 mb-3"><strong>Release Date:</strong> ${new Date(comicReleaseDate).toLocaleDateString()}</p>
+                            <p class="card-text mt-3 mb-3"><strong>Writers:</strong> ${comicWriters || 'Unknown'}</p>
+                            <p class="card-text mt-3 mb-3"><strong>Description:</strong> ${comicDescription}</p>
+                            <button id="back-button" class="btn btn-dark mt-5">Back to Comics</button>
+                        </div>
+                    </div>
+                    <div id="characters-section" class="characters-section col gap-3 mt-3 mb-3">
+                        <h4>Characters:</h4>
+                        <p class="results-counter">${comic.characters.available} RESULTS</p>
+                        <div class="d-flex col gap-3 flex-wrap" id="characters-container"></div>
+                    </div>
+                </div>
+            `;
+
+            results.innerHTML = comicDetailsHtml;
+
+            // If there are characters, fetch their details
+            if (comicCharacters.length > 0) {
+                displayComicCharacters(comicCharacters); // New function to fetch character details
+            } else {
+                document.getElementById('characters-container').innerHTML = '<p>No characters available.</p>';
+            }
+        })
+        .catch(err => console.log(err));
+}
+
+// Function to fetch and display characters based on resourceURI
+function displayComicCharacters(characters) {
+    let contentHtml = '';
+
+    characters.forEach(character => {
+        const characterName = character.name;
+        const characterResourceURI = character.resourceURI; // URL to get the character's details
+
+        // Fetch each character's details (including the image)
+        fetch(`${characterResourceURI}?ts=${TS}&apikey=${API_KEY}&hash=${API_HASH}`)
+            .then(res => res.json())
+            .then(info => {
+                const characterDetails = info.data.results[0];
+                const characterImg = `${characterDetails.thumbnail.path}.${characterDetails.thumbnail.extension}`;
+                
+                contentHtml += `
+
+                <div class="card col-md-4 mt-3 mb-3 bg-dark text-bg-dark character-card">
+                    <div class="character">
+                        <img src="${characterImg}" class="card-img img-fluid" alt="${characterName}">
+                    </div>
+                    <div class="card-body">
+                        <h5 class="card-title">${characterName}</h5>
+                    </div>
+                </div>
+                `;
+
+                // Insert characters into the container
+                document.getElementById('characters-container').innerHTML = contentHtml;
+
+                
+                // Back button to return to comics list
+                document.getElementById('back-button').addEventListener('click', function () {
+                document.getElementById('main').classList.remove('d-none');
+                getData(); // Reload the comic list
+            });
+        })
+        .catch(err => console.log(err));
+    });
+}
+
+// Function to display characters
 function setCharacters(characters) {
     contentHtml = '';
     characters.forEach(character => {
@@ -105,15 +213,16 @@ function setCharacters(characters) {
             <div class="img-container">
                 <img src="${characterImg}" class="card-img img-fluid" alt="${characterName}">
             </div>
-            <div class="card-body">
+            <div class="card-body mt-2">
                 <h5 class="card-title">${characterName}</h5>
                 <p class="card-text">Comics: ${characterComics}</p>
             </div>
         </div>`;
     });
+
     container.innerHTML = contentHtml;
 
-    // Add event listener to each character card
+    // Add event listener to each character card 
     document.querySelectorAll('.comic-card').forEach(card => {
         card.addEventListener('click', function () {
             const characterId = this.getAttribute('data-id');
@@ -124,6 +233,7 @@ function setCharacters(characters) {
             setCharacterComics(characterId, characterName, characterImg, characterInfo);
         });
     });
+
 }
 
 // Function to filter and combine input and selects
@@ -138,7 +248,7 @@ function filterData() {
 // Event listener for search form submission
 document.querySelector('form').addEventListener('submit', function (event) {
     event.preventDefault();
-    filterData(); 
+    filterData();
 });
 
 getData();
@@ -154,11 +264,11 @@ function setCharacterComics(characterId, characterName, characterImg, characterI
             const comicsCount = comics.length;
 
             contentHtml += `
-                <div class="col-12 d-flex mb-3">
+                <div class="col-12 d-flex gap-4 mb-3">
                     <div class="card-header col-md-4 mt-3 mb-3">
                         <img src="${characterImg}" class="card-img img-thumbnail character-img" alt="${characterName}">
                     </div>
-                    <div class="col-md-6 mb-3">
+                    <div class="col-md-6 mt-2 mb-3">
                         <h3 class="mt-3 mb-3">${characterName}</h3>
                         <p class="card-text text-wrap-balance">${characterInfo}</p>
                     </div>
