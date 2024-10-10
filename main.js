@@ -3,52 +3,68 @@ let contentHtml = '';
 const results = document.getElementById('results');
 let resultsHtml = '';
 
+let currentPage = 1;
+const resultsPerPage = 20;
+let totalPages = 1;
+
+let searchType = document.getElementById('search-type').value;
+let searchValue = document.getElementById('search-input').value.trim();
+let sortValue = document.getElementById('search-sort').value;
 
 const urlBase = 'https://gateway.marvel.com:443/v1/public/';
 
-// Function to fetch data (comics or characters)
-function getData(searchValue = '', sortValue = '', type = 'comics') {
-    let baseURL = `${urlBase}${type}?`;
+// Function to fetch data (comics or characters) with pagination
+function getData(searchValue, sortValue, seachType) {
+    const baseUrl = new URL(`${urlBase}${seachType}`);
+    const offset = (currentPage - 1) * resultsPerPage;
 
-    // Handle sorting
+    const params = new URLSearchParams();
+
+    // Add sorting first
     if (sortValue) {
-        if (type === 'comics') {
-            if (sortValue === 'title-asc') {
-                baseURL += 'orderBy=title&';
-            } else if (sortValue === 'title-desc') {
-                baseURL += 'orderBy=-title&';
-            } else if (sortValue === 'date-asc') {
-                baseURL += 'orderBy=focDate&';
-            } else if (sortValue === 'date-desc') {
-                baseURL += 'orderBy=-focDate&';
-            }
-        } else if (type === 'characters') {
-            if (sortValue === 'name-asc') {
-                baseURL += 'orderBy=name&';
-            } else if (sortValue === 'name-desc') {
-                baseURL += 'orderBy=-name&';
-            }
-        }
+        const sortOptions = {
+            'title-asc': 'title',
+            'title-desc': '-title',
+            'name-asc': 'name',
+            'name-desc': '-name',
+            'date-asc': 'focDate',
+            'date-desc': '-focDate'
+        };
+        params.set('orderBy', sortOptions[sortValue] || '');
     }
 
-    // Add search value filtering, if applicable
+    // Add limit and offset
+    params.set('limit', resultsPerPage);
+    params.set('offset', offset);
+
+    // Add search filtering
     if (searchValue) {
-        if (type === 'comics') {
-            baseURL += `titleStartsWith=${searchValue}&`;
-        } else if (type === 'characters') {
-            baseURL += `nameStartsWith=${searchValue}&`;
+        if (seachType === 'comics') {
+            params.set('titleStartsWith', searchValue);
+        } else if (seachType === 'characters') {
+            params.set('nameStartsWith', searchValue);
         }
     }
 
-    baseURL += `ts=${TS}&apikey=${API_KEY}&hash=${API_HASH}`;
-    console.log(baseURL);
+    // Add authentication parameters
+    params.set('apikey', API_KEY);
+    params.set('ts', TS);
+    params.set('hash', API_HASH);
+
+    // Append search params to the base URL
+    baseUrl.search = params.toString();
 
     // Fetch and display results
-    fetch(baseURL)
+    fetch(baseUrl)
         .then(res => res.json())
         .then(info => {
+            if (info.code !== 200) {
+                throw new Error(`Error ${info.code}: ${info.status}`);
+            }
+
             const totalResults = info.data.total;
-            console.log('Total results: ', totalResults);
+            totalPages = Math.ceil(totalResults / resultsPerPage);
+            console.log(`Total results: ${totalResults}, Total pages: ${totalPages}, Actual page: ${currentPage}`);
 
             resultsHtml = `
                 <h5 class="results-title">RESULTS</h5>
@@ -56,15 +72,54 @@ function getData(searchValue = '', sortValue = '', type = 'comics') {
             `;
             results.innerHTML = resultsHtml;
 
-            // Render results based on type
-            if (type === 'comics') {
+            // Render results based on seachType
+            if (seachType === 'comics') {
                 setComics(info.data.results);
             } else {
                 setCharacters(info.data.results);
             }
+
+            updatePaginationButtons(); // Update pagination controls
         })
         .catch(err => console.log(err));
 }
+
+window.onload = function () {
+    currentPage = 1;  // Ensure that the initial page is set to 1
+    searchType = 'comics';  // Default search type
+    searchValue = '';  // No initial search value
+    sortValue = '';  // Default sorting (none)
+    getData(searchValue, sortValue, searchType);  // Initial data fetch on page load
+};
+
+
+// Listen for changes in search-type to update search-sort options
+document.getElementById('search-type').addEventListener('change', updateSortOptions);
+
+function updateSortOptions() {
+    const searchType = document.getElementById('search-type').value;
+    const searchSort = document.getElementById('search-sort');
+
+    // Clear current options
+    searchSort.innerHTML = '';
+
+    // If searching for comics, set options for title
+    if (searchType === 'comics') {
+        searchSort.innerHTML = `
+            <option value="title-asc">A-Z</option>
+            <option value="title-desc">Z-A</option>
+            <option value="date-asc">Oldest</option>
+            <option value="date-desc">Newest</option>
+        `;
+    } else if (searchType === 'characters') {
+        // If searching for characters, set options for name
+        searchSort.innerHTML = `
+            <option value="name-asc">A-Z</option>
+            <option value="name-desc">Z-A</option>
+        `;
+    }
+}
+
 
 // Function to display comics
 function setComics(comics) {
@@ -95,7 +150,7 @@ function setComics(comics) {
     document.querySelectorAll('.comic-card').forEach(card => {
         card.addEventListener('click', function () {
             const comicId = this.getAttribute('data-id');
-            displayComicDetails(comicId);  // Function to fetch and show comic details
+            displayComicDetails(comicId);
         });
     });
 }
@@ -153,8 +208,15 @@ function displayComicDetails(comicId) {
             } else {
                 document.getElementById('characters-container').innerHTML = '<p>No characters available.</p>';
             }
+
+            // Back button to return to comics list
+            document.getElementById('back-button').addEventListener('click', function () {
+                document.getElementById('main').classList.remove('d-none');
+                getData(searchValue, sortValue, 'comics');  // Return to previous comics search
+            });
         })
         .catch(err => console.log(err));
+
 }
 
 // Function to fetch and display characters based on resourceURI
@@ -171,7 +233,7 @@ function displayComicCharacters(characters) {
             .then(info => {
                 const characterDetails = info.data.results[0];
                 const characterImg = `${characterDetails.thumbnail.path}.${characterDetails.thumbnail.extension}`;
-                
+
                 contentHtml += `
 
                 <div class="card col-md-4 mt-3 mb-3 bg-dark text-bg-dark character-card">
@@ -187,14 +249,14 @@ function displayComicCharacters(characters) {
                 // Insert characters into the container
                 document.getElementById('characters-container').innerHTML = contentHtml;
 
-                
+
                 // Back button to return to comics list
                 document.getElementById('back-button').addEventListener('click', function () {
-                document.getElementById('main').classList.remove('d-none');
-                getData(); // Reload the comic list
-            });
-        })
-        .catch(err => console.log(err));
+                    document.getElementById('main').classList.remove('d-none');
+                    getData(searchValue, sortValue, 'comics'); // Reload the comic list
+                });
+            })
+            .catch(err => console.log(err));
     });
 }
 
@@ -245,17 +307,36 @@ function filterData() {
     getData(searchInput, searchSort, searchType);
 }
 
+
 // Event listener for search form submission
 document.querySelector('form').addEventListener('submit', function (event) {
     event.preventDefault();
-    filterData();
-});
+    currentPage = 1;  // Reset to page 1 for new searches
 
-getData();
+    // Update search variables based on user input
+    searchValue = document.getElementById('search-input').value.trim();
+    searchType = document.getElementById('search-type').value;
+    sortValue = document.getElementById('search-sort').value;
+
+    // Execute the search with updated values
+    getData(searchValue, sortValue, searchType);
+}
+);
 
 
+// Function to display characters' comics
 function setCharacterComics(characterId, characterName, characterImg, characterInfo) {
     contentHtml = ``;
+    document.getElementById('pagination-controls').classList.add('d-none');
+
+    // Save the current search parameters before fetching comics for the character
+    const previousSearchValue = searchValue;
+    const previousSortValue = sortValue;
+    const previousSearchType = searchType;
+
+    console.log(previousSearchValue, previousSearchType, previousSortValue);
+    
+
 
     fetch(`https://gateway.marvel.com:443/v1/public/characters/${characterId}/comics?ts=${TS}&apikey=${API_KEY}&hash=${API_HASH}`)
         .then(res => res.json())
@@ -266,66 +347,104 @@ function setCharacterComics(characterId, characterName, characterImg, characterI
             contentHtml += `
                 <div class="col-12 d-flex gap-4 mb-3">
                     <div class="card-header col-md-4 mt-3 mb-3">
-                        <img src="${characterImg}" class="card-img img-thumbnail character-img" alt="${characterName}">
+                        <img src="${characterImg}" class="card-img img-fluid character-img" alt="${characterName}">
                     </div>
-                    <div class="col-md-6 mt-2 mb-3">
+                    <div class="col-md-6 mt-2 mb-3 flex-column gap-4">
                         <h3 class="mt-3 mb-3">${characterName}</h3>
-                        <p class="card-text text-wrap-balance">${characterInfo}</p>
+                        <p class="card-text text-wrap-balance mt-3 mb-3">${characterInfo}</p>
+                        <div class="col-12 mt-4">
+                            <button id="back-button" class="btn btn-dark">Back to Characters</button>
+                        </div>
                     </div>
                 </div>
                 <div class="col-12 mb-3">
                     <h4 class="mt-2 mb-3">COMICS</h4>
                     <p class="results-comics">${comicsCount} RESULTS</p>
-                </div>
-            `
-
-            for (let i = 0; i < comics.length; i++) {
-                const comicTitle = comics[i].title;
-                const comicImg = `${comics[i].thumbnail.path}.${comics[i].thumbnail.extension}`;
-                const comicUrl = comics[i].urls[0].url;
-
-
-                contentHtml += `
-                <div class="card col-md-4 mt-3 mb-3 comic-card card2">
-                    <div class="character">
-                        <img src="${comicImg}" class="card-img img-fluid" alt="${comicTitle}">
-                    </div>
-                    <div class="card-body">
-                        <p class="card-title"><a href="${comicUrl}" class="text-dark" target="_blank">${comicTitle}</a></p>
-                    </div>
                 </div>`;
+
+            if (comicsCount > 0) {
+                comics.forEach(comic => {
+                    const comicTitle = comic.title;
+                    const comicImg = `${comic.thumbnail.path}.${comic.thumbnail.extension}`;
+                    const comicUrl = comic.urls[0].url;
+
+                    contentHtml += `
+                    <div class="card col-md-4 mt-3 mb-3 comic-card character-card bg-dark">
+                        <div class="character">
+                            <img src="${comicImg}" class="card-img img-fluid" alt="${comicTitle}">
+                        </div>
+                        <div class="card-body">
+                            <p class="card-title"><a href="${comicUrl}" class="text-white" target="_blank">${comicTitle}</a></p>
+                        </div>
+                    </div>`;
+                });
+            } else {
+                contentHtml += `<p>No comics available for this character.</p>`;
             }
+
             container.innerHTML = contentHtml;
+
+            document.getElementById('back-button').addEventListener('click', function () {
+                document.getElementById('pagination-controls').classList.remove('d-none');
+                getData(previousSearchValue, previousSortValue, 'characters');
+            });
         })
         .catch(err => console.log(err));
 }
 
-
-// Pagination controls
+// Pagination
 const add = document.querySelector('#add');
 const subs = document.querySelector('#subs');
 const firstPage = document.querySelector('#first-page');
 const lastPage = document.querySelector('#last-page');
-const pages = document.querySelector('#pages');
 
-add.addEventListener('click', () => {
-    pages.textContent = counter < 10 ? ++counter : pages.textContent;
-    getData();
+// Event listeners for pagination buttons
+add.addEventListener('click', () => changePage(1));
+subs.addEventListener('click', () => changePage(-1));
+firstPage.addEventListener('click', () => goToPage(1));
+lastPage.addEventListener('click', () => goToPage(totalPages));
+
+
+// Update global search values when the search form is submitted
+document.querySelector('form').addEventListener('submit', function (event) {
+    event.preventDefault();
+    currentPage = 1;  // Reset to page 1 for new searches
+    getData(searchValue, sortValue, searchType);
 });
 
-subs.addEventListener('click', () => {
-    pages.textContent = counter > 1 ? --counter : pages.textContent;
-    getData();
-});
 
-firstPage.addEventListener('click', () => {
-    counter = 1;
-    pages.textContent = counter;
-    getData();
-});
+// Function to change page (next or previous)
+function changePage(step) {
+    const nextPage = currentPage + step;
+    if (nextPage >= 1 && nextPage <= totalPages) {
+        currentPage = nextPage;
+        getData(searchValue, sortValue, searchType);
+    }
+}
 
-lastPage.addEventListener('click', () => {
-    counter = 10;
-    pages.textContent = counter;
-    getData();
-});
+// Function to go directly to a specific page
+function goToPage(pageNumber) {
+    if (pageNumber >= 1 && pageNumber <= totalPages) {
+        currentPage = pageNumber;
+        getData(searchValue, sortValue, searchType);
+    }
+}
+
+
+// Function to update the pagination buttons
+function updatePaginationButtons() {
+
+    // Disable/enable buttons based on the current page
+    toggleButtonState(subs, currentPage === 1);
+    toggleButtonState(firstPage, currentPage === 1);
+    toggleButtonState(add, currentPage === totalPages);
+    toggleButtonState(lastPage, currentPage === totalPages);
+
+    // Update the page number display
+    document.getElementById('pages').textContent = currentPage;
+}
+
+// Helper function to toggle button state
+function toggleButtonState(button, shouldDisable) {
+    button.disabled = shouldDisable;
+}

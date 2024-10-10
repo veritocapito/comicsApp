@@ -56,7 +56,7 @@ form{
     box-shadow: 6px 8px 5px 0px rgba(117,109,117,1);
 }
 
-.comic-card:hover{
+.comic-card:hover, character-card:hover{
     cursor: pointer;
 }
 
