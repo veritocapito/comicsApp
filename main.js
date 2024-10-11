@@ -3,6 +3,10 @@ let contentHtml = '';
 const results = document.getElementById('results');
 let resultsHtml = '';
 
+const API_KEY = 'd0bac062c296448e513e8a3147810f19';
+const TS = '1';
+const API_HASH = '5e6eef74abfa220a102df0024190f6e7';
+
 let currentPage = 1;
 const resultsPerPage = 20;
 let totalPages = 1;
@@ -180,11 +184,11 @@ function displayComicDetails(comicId) {
 
             const comicDetailsHtml = `
                 <div class="col-12 d-flex flex-column gap-5 mt-3 mb-3">
-                    <div class="col-12 d-flex gap-5 mt-3 mb-3">
+                    <div class="col-12 d-flex col-md-8 gap-3 mt-3 mb-3 comic">
                         <div class="img-character col-md-4 mt-3 mb-3">
                             <img src="${comicImg}" class="card-img img-fluid" alt="${comicTitle}">
                         </div>
-                        <div class="col-md-6 mt-3 mb-3">
+                        <div class="col-md-8 mt-3 mb-3 info">
                             <h2>${comicTitle}</h2>
                             <p class="card-text mt-3 mb-3"><strong>Release Date:</strong> ${new Date(comicReleaseDate).toLocaleDateString()}</p>
                             <p class="card-text mt-3 mb-3"><strong>Writers:</strong> ${comicWriters || 'Unknown'}</p>
@@ -237,7 +241,7 @@ function displayComicCharacters(characters) {
                 contentHtml += `
 
                 <div class="card col-md-4 mt-3 mb-3 bg-dark text-bg-dark character-card">
-                    <div class="character">
+                    <div class="character-img">
                         <img src="${characterImg}" class="card-img img-fluid" alt="${characterName}">
                     </div>
                     <div class="card-body">
@@ -345,11 +349,12 @@ function setCharacterComics(characterId, characterName, characterImg, characterI
             const comicsCount = comics.length;
 
             contentHtml += `
-                <div class="col-12 d-flex gap-4 mb-3">
+            <div class="col-12 d-flex flex-column gap-5 mt-3 mb-3">
+                <div class="col-12 d-flex flex-wrap gap-4 mb-3 character-info">
                     <div class="card-header col-md-4 mt-3 mb-3">
                         <img src="${characterImg}" class="card-img img-fluid character-img" alt="${characterName}">
                     </div>
-                    <div class="col-md-6 mt-2 mb-3 flex-column gap-4">
+                    <div class="col-md-6 mt-2 mb-3 flex-column gap-4 info">
                         <h3 class="mt-3 mb-3">${characterName}</h3>
                         <p class="card-text text-wrap-balance mt-3 mb-3">${characterInfo}</p>
                         <div class="col-12 mt-4">
@@ -357,10 +362,12 @@ function setCharacterComics(characterId, characterName, characterImg, characterI
                         </div>
                     </div>
                 </div>
-                <div class="col-12 mb-3">
-                    <h4 class="mt-2 mb-3">COMICS</h4>
-                    <p class="results-comics">${comicsCount} RESULTS</p>
-                </div>`;
+            </div>
+            <div class="container results">
+                <h4 class="mt-2 mb-3">COMICS</h4>
+                <p class="results-comics">${comicsCount} RESULTS</p>
+            </div>
+            `;
 
             if (comicsCount > 0) {
                 comics.forEach(comic => {
@@ -370,7 +377,7 @@ function setCharacterComics(characterId, characterName, characterImg, characterI
 
                     contentHtml += `
                     <div class="card col-md-4 mt-3 mb-3 comic-card character-card bg-dark">
-                        <div class="character">
+                        <div class="character-img">
                             <img src="${comicImg}" class="card-img img-fluid" alt="${comicTitle}">
                         </div>
                         <div class="card-body">

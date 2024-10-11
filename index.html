@@ -3,6 +3,24 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="Comics App" />
+    <meta
+      name="keywords"
+      content="comics, developer, frontend, marvel, woman, code, websites, app"
+    />
+    <meta name="author" content="Veronica Capobianco" />
+    <meta property="og:title" content="Marvel Comic's App" />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://e-comics.netlify.app" />
+    <meta
+      property="og:image"
+      content="https://i.postimg.cc/SsHCNL4V/comics-App.png"
+    />
+    <meta
+      property="og:description"
+      content="Search your favourite comic or characters of Marvel's World!"
+    />
+    <meta property="og:site_name" content="Marvel Comic's App" />
     <link
       href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
       rel="stylesheet"
@@ -15,83 +33,106 @@
   </head>
 
   <body>
-    <h1 class="bg-black">Comics App</h1>
-    <header></header>
-    <div class="d-flex flex-column align-items-center">
-      <form
-        class="container row align-items-center mt-5 mb-4 justify-content-between"
-      >
-        <div class="col-6 d-flex align-items-center m-0 p-0">
-          <input
-            type="search"
-            id="search-input"
-            class="form-control"
-            placeholder="SEARCH HERE"
-            aria-labelledby="search-title"
-          />
+    <div class="wrapper">
+      <h1 class="bg-black">Comics App</h1>
+      <header></header>
+
+      <div class="main-content">
+        <div class="d-flex flex-column align-items-center">
+          <form
+            class="container row align-items-center mt-5 mb-4 justify-content-between"
+          >
+            <div class="col-6 d-flex align-items-center m-0 p-0">
+              <input
+                type="search"
+                id="search-input"
+                class="form-control"
+                placeholder="SEARCH HERE"
+                aria-labelledby="search-title"
+              />
+            </div>
+
+            <div class="col-2 d-flex align-items-center gap-2">
+              <label for="search-type" class="form-label m-0">TYPE</label>
+              <select name="search-type" id="search-type" class="form-select">
+                <option value="comics">COMICS</option>
+                <option value="characters">CHARACTERS</option>
+              </select>
+            </div>
+
+            <div class="col-2 d-flex align-items-center gap-2">
+              <label for="search-sort" class="form-label m-0">SORT</label>
+              <select name="search-sort" id="search-sort" class="form-select">
+                <option value="title-asc">A-Z</option>
+                <option value="title-desc">Z-A</option>
+                <option value="date-asc">Oldest</option>
+                <option value="date-desc">Newest</option>
+              </select>
+            </div>
+
+            <div class="col-1">
+              <button type="submit" class="btn btn-primary">SEARCH</button>
+            </div>
+          </form>
         </div>
+        <div class="container" id="results"></div>
 
-        <div class="col-2 d-flex align-items-center gap-2">
-          <label for="search-type" class="form-label m-0">TYPE</label>
-          <select name="search-type" id="search-type" class="form-select">
-            <option value="comics">COMICS</option>
-            <option value="characters">CHARACTERS</option>
-          </select>
-        </div>
-
-        <div class="col-2 d-flex align-items-center gap-2">
-          <label for="search-sort" class="form-label m-0">SORT</label>
-          <select name="search-sort" id="search-sort" class="form-select">
-            <option value="title-asc">A-Z</option>
-            <option value="title-desc">Z-A</option>
-            <option value="date-asc">Oldest</option>
-            <option value="date-desc">Newest</option>
-          </select>
-        </div>
-
-        <div class="col-1">
-          <button type="submit" class="btn btn-primary">SEARCH</button>
-        </div>
-      </form>
-    </div>
-    <div class="container" id="results">
-
-    </div>
-
-    <main
-      class="d-flex flex-column align-items-center justify-content-center"
-      id="main"
-    >
-      <div
-        id="container"
-        class="container mb-5 d-flex gap-4 flex-wrap sm-justify-content-center"
-      ></div>
-      <div class="d-flex justify-content-center align-items-center gap-2 mb-4" id="pagination-controls">
-        <button class="btn btn-primary text-white" id="first-page"
-          ><<</button
+        <main
+          class="d-flex flex-column align-items-center justify-content-center"
+          id="main"
         >
-        <button class="btn btn-primary text-white" id="subs"><</button>
-        <p id="pages" class="mx-4 my-2 text-xl-center">1</p>
-        <button class="btn btn-primary text-white" id="add">></button>
-        <button class="btn btn-primary text-white" id="last-page">>></button>
+          <div
+            id="container"
+            class="container mb-5 d-flex gap-4 flex-wrap sm-justify-content-center"
+          ></div>
+          <div
+            class="d-flex justify-content-center align-items-center gap-2 mb-4"
+            id="pagination-controls"
+          >
+            <button class="btn btn-primary text-white" id="first-page">
+              <<
+            </button>
+            <button class="btn btn-primary text-white" id="subs"><</button>
+            <p id="pages" class="mx-4 my-2 text-xl-center">1</p>
+            <button class="btn btn-primary text-white" id="add">></button>
+            <button class="btn btn-primary text-white" id="last-page">
+              >>
+            </button>
+          </div>
+        </main>
+
+        <a href="#" class="back-to-top text-danger"
+          ><svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="30"
+            height="30"
+            fill="currentColor"
+            class="bi bi-arrow-up-circle-fill"
+            viewBox="0 0 16 16"
+          >
+            <path
+              d="M16 8A8 8 0 1 0 0 8a8 8 0 0 0 16 0m-7.5 3.5a.5.5 0 0 1-1 0V5.707L5.354 7.854a.5.5 0 1 1-.708-.708l3-3a.5.5 0 0 1 .708 0l3 3a.5.5 0 0 1-.708.708L8.5 5.707z"
+            /></svg
+        ></a>
       </div>
-    </main>
-
-    <footer class="d-flex justify-content-center align-items-end bg-black">
-      <p class="footer mt-4 font-monospace">
-        2024 - Develop by
-        <a href="https://github.com/veritocapito" target="_blank"
-          >@veritocapito</a
-        >
-      </p>
-    </footer>
-
+      
+      <footer
+        class="d-flex justify-content-center text-primary align-items-end bg-black"
+      >
+        <p class="footer mt-4 font-monospace">
+          2024 - Develop by
+          <a href="https://github.com/veritocapito" target="_blank"
+            >@veritocapito</a
+          >
+        </p>
+      </footer>
+    </div>
     <script
       src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
       integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
       crossorigin="anonymous"
     ></script>
-    <script src="./env.js"></script>
+    <!--     <script src="./env.js"></script> -->
     <script src="./main.js"></script>
   </body>
 </html>
