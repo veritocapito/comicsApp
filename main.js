@@ -15,14 +15,46 @@ let searchType = document.getElementById('search-type').value;
 let searchValue = document.getElementById('search-input').value.trim();
 let sortValue = document.getElementById('search-sort').value;
 
+// Store previous search parameters
+let previousSearchValue = '';
+let previousSortValue = '';
+let previousSearchType = '';
+
 const urlBase = 'https://gateway.marvel.com:443/v1/public/';
 
+// Update sorting options based on search type
+function updateSortOptions() {
+    const sortSelect = document.getElementById('search-sort');
+    const searchType = document.getElementById('search-type').value;
+
+    sortSelect.innerHTML = ''; 
+
+    if (searchType === 'comics') {
+        sortSelect.innerHTML = `
+            <option value="title-asc">A-Z</option>
+            <option value="title-desc">Z-A</option>
+            <option value="date-asc">Oldest</option>
+            <option value="date-desc">Newest</option>
+        `;
+    } else if (searchType === 'characters') {
+        sortSelect.innerHTML = `
+            <option value="name-asc">A-Z</option>
+            <option value="name-desc">Z-A</option>
+        `;
+    }
+}
+
+// Event listener to update sorting options when search type changes
+document.getElementById('search-type').addEventListener('change', updateSortOptions);
+
 // Function to fetch data (comics or characters) with pagination
-function getData(searchValue, sortValue, seachType) {
-    const baseUrl = new URL(`${urlBase}${seachType}`);
+function getData(searchValue, sortValue, searchType) {
+    const baseUrl = new URL(`${urlBase}${searchType}`);
     const offset = (currentPage - 1) * resultsPerPage;
 
     const params = new URLSearchParams();
+    contentHtml = '';
+    container.classList.add('loading');
 
     // Add sorting first
     if (sortValue) {
@@ -43,9 +75,9 @@ function getData(searchValue, sortValue, seachType) {
 
     // Add search filtering
     if (searchValue) {
-        if (seachType === 'comics') {
+        if (searchType === 'comics') {
             params.set('titleStartsWith', searchValue);
-        } else if (seachType === 'characters') {
+        } else if (searchType === 'characters') {
             params.set('nameStartsWith', searchValue);
         }
     }
@@ -76,54 +108,20 @@ function getData(searchValue, sortValue, seachType) {
             `;
             results.innerHTML = resultsHtml;
 
-            // Render results based on seachType
-            if (seachType === 'comics') {
+            // Render results based on searchType
+            if (searchType === 'comics') {
                 setComics(info.data.results);
             } else {
                 setCharacters(info.data.results);
             }
 
-            updatePaginationButtons(); // Update pagination controls
+            updatePaginationButtons();
         })
-        .catch(err => console.log(err));
+        .catch(err => console.log(err))
+        .finally(() => {
+            container.classList.remove('loading');
+        });
 }
-
-window.onload = function () {
-    currentPage = 1;  // Ensure that the initial page is set to 1
-    searchType = 'comics';  // Default search type
-    searchValue = '';  // No initial search value
-    sortValue = '';  // Default sorting (none)
-    getData(searchValue, sortValue, searchType);  // Initial data fetch on page load
-};
-
-
-// Listen for changes in search-type to update search-sort options
-document.getElementById('search-type').addEventListener('change', updateSortOptions);
-
-function updateSortOptions() {
-    const searchType = document.getElementById('search-type').value;
-    const searchSort = document.getElementById('search-sort');
-
-    // Clear current options
-    searchSort.innerHTML = '';
-
-    // If searching for comics, set options for title
-    if (searchType === 'comics') {
-        searchSort.innerHTML = `
-            <option value="title-asc">A-Z</option>
-            <option value="title-desc">Z-A</option>
-            <option value="date-asc">Oldest</option>
-            <option value="date-desc">Newest</option>
-        `;
-    } else if (searchType === 'characters') {
-        // If searching for characters, set options for name
-        searchSort.innerHTML = `
-            <option value="name-asc">A-Z</option>
-            <option value="name-desc">Z-A</option>
-        `;
-    }
-}
-
 
 // Function to display comics
 function setComics(comics) {
@@ -159,10 +157,10 @@ function setComics(comics) {
     });
 }
 
-// Function to fetch and display comic details
+// Function to display comic details
 function displayComicDetails(comicId) {
-
-    document.getElementById('main').classList.add('d-none')
+    document.getElementById('main').classList.add('d-none');
+    container.classList.add('loading');
 
     fetch(`https://gateway.marvel.com:443/v1/public/comics/${comicId}?ts=${TS}&apikey=${API_KEY}&hash=${API_HASH}`)
         .then(res => res.json())
@@ -170,7 +168,6 @@ function displayComicDetails(comicId) {
             const comic = info.data.results[0];
             console.log(comic);
             console.log(comic.characters);
-
 
             const comicTitle = comic.title;
             const comicImg = `${comic.thumbnail.path}.${comic.thumbnail.extension}`;
@@ -183,7 +180,7 @@ function displayComicDetails(comicId) {
             const comicCharacters = comic.characters.items;
 
             const comicDetailsHtml = `
-                <div class="col-12 d-flex flex-column gap-5 mt-3 mb-3">
+                <div class="col-12 d-flex flex-column gap-5 mt-3 mb-3" id="comic-details">
                     <div class="col-12 d-flex col-md-8 gap-3 mt-3 mb-3 comic">
                         <div class="img-character col-md-4 mt-3 mb-3">
                             <img src="${comicImg}" class="card-img img-fluid" alt="${comicTitle}">
@@ -216,52 +213,15 @@ function displayComicDetails(comicId) {
             // Back button to return to comics list
             document.getElementById('back-button').addEventListener('click', function () {
                 document.getElementById('main').classList.remove('d-none');
-                getData(searchValue, sortValue, 'comics');  // Return to previous comics search
+                document.getElementById('comic-details').classList.add('d-none');
+                getData(searchValue, sortValue, 'comics');
             });
         })
-        .catch(err => console.log(err));
-
-}
-
-// Function to fetch and display characters based on resourceURI
-function displayComicCharacters(characters) {
-    let contentHtml = '';
-
-    characters.forEach(character => {
-        const characterName = character.name;
-        const characterResourceURI = character.resourceURI; // URL to get the character's details
-
-        // Fetch each character's details (including the image)
-        fetch(`${characterResourceURI}?ts=${TS}&apikey=${API_KEY}&hash=${API_HASH}`)
-            .then(res => res.json())
-            .then(info => {
-                const characterDetails = info.data.results[0];
-                const characterImg = `${characterDetails.thumbnail.path}.${characterDetails.thumbnail.extension}`;
-
-                contentHtml += `
-
-                <div class="card col-md-4 mt-3 mb-3 bg-dark text-bg-dark character-card">
-                    <div class="character-img">
-                        <img src="${characterImg}" class="card-img img-fluid" alt="${characterName}">
-                    </div>
-                    <div class="card-body">
-                        <h5 class="card-title">${characterName}</h5>
-                    </div>
-                </div>
-                `;
-
-                // Insert characters into the container
-                document.getElementById('characters-container').innerHTML = contentHtml;
-
-
-                // Back button to return to comics list
-                document.getElementById('back-button').addEventListener('click', function () {
-                    document.getElementById('main').classList.remove('d-none');
-                    getData(searchValue, sortValue, 'comics'); // Reload the comic list
-                });
-            })
-            .catch(err => console.log(err));
-    });
+        .catch(err => console.log(err))
+        .finally(() => {
+            container.classList.remove('loading');
+        });
+        
 }
 
 // Function to display characters
@@ -299,48 +259,16 @@ function setCharacters(characters) {
             setCharacterComics(characterId, characterName, characterImg, characterInfo);
         });
     });
-
 }
 
-// Function to filter and combine input and selects
-function filterData() {
-    const searchInput = document.getElementById('search-input').value.trim();
-    const searchType = document.getElementById('search-type').value;
-    const searchSort = document.getElementById('search-sort').value;
-
-    getData(searchInput, searchSort, searchType);
-}
-
-
-// Event listener for search form submission
-document.querySelector('form').addEventListener('submit', function (event) {
-    event.preventDefault();
-    currentPage = 1;  // Reset to page 1 for new searches
-
-    // Update search variables based on user input
-    searchValue = document.getElementById('search-input').value.trim();
-    searchType = document.getElementById('search-type').value;
-    sortValue = document.getElementById('search-sort').value;
-
-    // Execute the search with updated values
-    getData(searchValue, sortValue, searchType);
-}
-);
-
-
-// Function to display characters' comics
+// Function to display character's comics and add back button
 function setCharacterComics(characterId, characterName, characterImg, characterInfo) {
+
     contentHtml = ``;
     document.getElementById('pagination-controls').classList.add('d-none');
-
-    // Save the current search parameters before fetching comics for the character
-    const previousSearchValue = searchValue;
-    const previousSortValue = sortValue;
-    const previousSearchType = searchType;
-
     console.log(previousSearchValue, previousSearchType, previousSortValue);
-    
 
+    container.classList.add('loading');
 
     fetch(`https://gateway.marvel.com:443/v1/public/characters/${characterId}/comics?ts=${TS}&apikey=${API_KEY}&hash=${API_HASH}`)
         .then(res => res.json())
@@ -349,7 +277,7 @@ function setCharacterComics(characterId, characterName, characterImg, characterI
             const comicsCount = comics.length;
 
             contentHtml += `
-            <div class="col-12 d-flex flex-column gap-5 mt-3 mb-3">
+            <div class="col-12 col-md-8 d-flex flex-column character-container gap-5 mt-3 mb-3">
                 <div class="col-12 d-flex flex-wrap gap-4 mb-3 character-info">
                     <div class="card-header col-md-4 mt-3 mb-3">
                         <img src="${characterImg}" class="card-img img-fluid character-img" alt="${characterName}">
@@ -396,10 +324,61 @@ function setCharacterComics(characterId, characterName, characterImg, characterI
                 getData(previousSearchValue, previousSortValue, 'characters');
             });
         })
-        .catch(err => console.log(err));
+        .catch(err => console.log(err))
+        .finally(() => {
+            container.classList.remove('loading');
+        });
 }
 
-// Pagination
+// Function to fetch and display characters based on resourceURI
+function displayComicCharacters(characters) {
+    let contentHtml = '';
+
+    characters.forEach(character => {
+        const characterName = character.name;
+        const characterResourceURI = character.resourceURI; // URL to get the character's details
+
+        // Fetch each character's details (including the image)
+        fetch(`${characterResourceURI}?ts=${TS}&apikey=${API_KEY}&hash=${API_HASH}`)
+            .then(res => res.json())
+            .then(info => {
+                const characterDetails = info.data.results[0];
+                const characterImg = `${characterDetails.thumbnail.path}.${characterDetails.thumbnail.extension}`;
+
+                contentHtml += `
+                <div class="card col-md-4 mt-3 mb-3 bg-dark text-bg-dark character-card">
+                    <div class="character-img">
+                        <img src="${characterImg}" class="card-img img-fluid" alt="${characterName}">
+                    </div>
+                    <div class="card-body">
+                        <h5 class="card-title">${characterName}</h5>
+                    </div>
+                </div>
+                `;
+
+                 // Insert characters into the container
+                document.getElementById('characters-container').innerHTML = contentHtml;
+
+            })
+            .catch(err => console.log(err));
+    });
+}
+
+// Event listener for search form submission
+document.querySelector('form').addEventListener('submit', function (event) {
+    event.preventDefault();
+    currentPage = 1;  // Reset to page 1 for new searches
+
+    // Update search variables based on user input
+    searchValue = document.getElementById('search-input').value.trim();
+    searchType = document.getElementById('search-type').value;
+    sortValue = document.getElementById('search-sort').value;
+
+    // Execute the search with updated values
+    getData(searchValue, sortValue, searchType);
+});
+
+// Pagination logic
 const add = document.querySelector('#add');
 const subs = document.querySelector('#subs');
 const firstPage = document.querySelector('#first-page');
@@ -410,15 +389,6 @@ add.addEventListener('click', () => changePage(1));
 subs.addEventListener('click', () => changePage(-1));
 firstPage.addEventListener('click', () => goToPage(1));
 lastPage.addEventListener('click', () => goToPage(totalPages));
-
-
-// Update global search values when the search form is submitted
-document.querySelector('form').addEventListener('submit', function (event) {
-    event.preventDefault();
-    currentPage = 1;  // Reset to page 1 for new searches
-    getData(searchValue, sortValue, searchType);
-});
-
 
 // Function to change page (next or previous)
 function changePage(step) {
@@ -437,10 +407,8 @@ function goToPage(pageNumber) {
     }
 }
 
-
 // Function to update the pagination buttons
 function updatePaginationButtons() {
-
     // Disable/enable buttons based on the current page
     toggleButtonState(subs, currentPage === 1);
     toggleButtonState(firstPage, currentPage === 1);
@@ -455,3 +423,12 @@ function updatePaginationButtons() {
 function toggleButtonState(button, shouldDisable) {
     button.disabled = shouldDisable;
 }
+
+// Initial call to load comics on page load
+window.onload = function () {
+    currentPage = 1;
+    searchType = 'comics';
+    searchValue = '';
+    sortValue = '';
+    getData(searchValue, sortValue, searchType);
+};

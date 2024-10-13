@@ -38,11 +38,11 @@
       <header></header>
 
       <div class="main-content">
-        <div class="d-flex flex-column align-items-center">
+        <div class="d-flex flex-column align-items-center justify-content-center">
           <form
-            class="container row align-items-center mt-5 mb-4 justify-content-between"
+            class="d-flex col-8 align-items-center gap-3 mt-5 mb-5 justify-content-center"
           >
-            <div class="col-6 d-flex align-items-center m-0 p-0">
+            <div class="col-3 d-flex input align-items-center m-0 p-0">
               <input
                 type="search"
                 id="search-input"
@@ -52,7 +52,7 @@
               />
             </div>
 
-            <div class="col-2 d-flex align-items-center gap-2">
+            <div class="col-3 d-flex input align-items-center gap-2">
               <label for="search-type" class="form-label m-0">TYPE</label>
               <select name="search-type" id="search-type" class="form-select">
                 <option value="comics">COMICS</option>
@@ -60,7 +60,7 @@
               </select>
             </div>
 
-            <div class="col-2 d-flex align-items-center gap-2">
+            <div class="col-3 d-flex input align-items-center gap-2">
               <label for="search-sort" class="form-label m-0">SORT</label>
               <select name="search-sort" id="search-sort" class="form-select">
                 <option value="title-asc">A-Z</option>
@@ -70,7 +70,7 @@
               </select>
             </div>
 
-            <div class="col-1">
+            <div class="col-3 d-flex align-items-center">
               <button type="submit" class="btn btn-primary">SEARCH</button>
             </div>
           </form>
@@ -83,7 +83,7 @@
         >
           <div
             id="container"
-            class="container mb-5 d-flex gap-4 flex-wrap sm-justify-content-center"
+            class="container mb-5 d-flex gap-4 flex-wrap lg-justify-content-between"
           ></div>
           <div
             class="d-flex justify-content-center align-items-center gap-2 mb-4"
@@ -101,21 +101,12 @@
           </div>
         </main>
 
-        <a href="#" class="back-to-top text-danger"
-          ><svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="30"
-            height="30"
-            fill="currentColor"
-            class="bi bi-arrow-up-circle-fill"
-            viewBox="0 0 16 16"
-          >
-            <path
-              d="M16 8A8 8 0 1 0 0 8a8 8 0 0 0 16 0m-7.5 3.5a.5.5 0 0 1-1 0V5.707L5.354 7.854a.5.5 0 1 1-.708-.708l3-3a.5.5 0 0 1 .708 0l3 3a.5.5 0 0 1-.708.708L8.5 5.707z"
-            /></svg
-        ></a>
+        <a href="#" class="back-to-top text-danger">
+        <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" fill="currentColor" class="bi bi-arrow-up-square-fill" viewBox="0 0 16 16">
+          <path d="M2 16a2 2 0 0 1-2-2V2a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2zm6.5-4.5V5.707l2.146 2.147a.5.5 0 0 0 .708-.708l-3-3a.5.5 0 0 0-.708 0l-3 3a.5.5 0 1 0 .708.708L7.5 5.707V11.5a.5.5 0 0 0 1 0"/>
+        </svg></a>
       </div>
-      
+
       <footer
         class="d-flex justify-content-center text-primary align-items-end bg-black"
       >
@@ -132,7 +123,7 @@
       integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
       crossorigin="anonymous"
     ></script>
-    <!--     <script src="./env.js"></script> -->
+<!--     <script src="./env.js"></script> -->
     <script src="./main.js"></script>
   </body>
 </html>
