@@ -336,7 +336,11 @@ function displayComicCharacters(characters) {
 
     characters.forEach(character => {
         const characterName = character.name;
-        const characterResourceURI = character.resourceURI; // URL to get the character's details
+        const characterResourceURI = character.resourceURI;
+
+        if (characterResourceURI.startsWith('http://')) {
+            characterResourceURI = characterResourceURI.replace('http://', 'https://');
+        }
 
         // Fetch each character's details (including the image)
         fetch(`${characterResourceURI}?ts=${TS}&apikey=${API_KEY}&hash=${API_HASH}`)
