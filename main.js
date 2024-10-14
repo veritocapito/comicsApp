@@ -1,5 +1,6 @@
 const container = document.getElementById('container');
 let contentHtml = '';
+const loader = document.getElementById('loader');
 const results = document.getElementById('results');
 let resultsHtml = '';
 
@@ -54,6 +55,8 @@ function getData(searchValue, sortValue, searchType) {
 
     const params = new URLSearchParams();
     contentHtml = '';
+
+    loader.classList.remove('d-none');
     container.classList.add('loading');
 
     // Add sorting first
@@ -119,6 +122,7 @@ function getData(searchValue, sortValue, searchType) {
         })
         .catch(err => console.log(err))
         .finally(() => {
+            loader.classList.add('d-none');
             container.classList.remove('loading');
         });
 }

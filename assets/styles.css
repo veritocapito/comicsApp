@@ -23,6 +23,19 @@ html, body {
     overflow: hidden;
 }
 
+.loader {
+    position: fixed;
+    top: 95%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 9999; /* Para que esté encima de todo */
+}
+
+.d-none {
+    display: none;
+}
+
+
 header{
     height: 60vh;
     background: url('./hero.jpg'), rgb(236, 29, 36);
